@@ -22,13 +22,13 @@ APP_LOGGER = setup_app_logging()
 load_dotenv()
 
 # == App Settings == #
-DEV = os.getenv("DEV", "false").lower() == "true"
+DEV = os.getenv("DEV", "true").lower() == "true"
 if DEV:
     APP_LOGGER.info("Running in development mode!")
 
 TIMEZONE = ZoneInfo("America/New_York")
 
-VERSION = "2.1.5"
+VERSION = "1.0.garbage"
 
 # == Bot Settings == #
 BOT_PREFIXES = ["="]
@@ -56,4 +56,9 @@ ENABLED_EXTENSIONS = ["ext.utils", "ext.publish"]
 if DEV:
     ENABLED_EXTENSIONS.append("ext.development")
 
-EXTENSION_SETTINGS: dict = {}
+EXTENSION_SETTINGS: dict = {
+    "publish": {
+        "publish_url": os.getenv("PUBLISH_URL", "https://example.com/publish"),
+        "publish_api_key": os.getenv("PUBLISH_API_KEY"),
+    },
+}

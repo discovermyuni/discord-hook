@@ -1,3 +1,7 @@
+import http
+import logging
+
+import aiohttp
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -14,10 +18,33 @@ from .data import set_guild_publishing_channel
 from .data import set_source_key
 
 default_settings = {"publish_url": "https://example.com/publish"}
+logger = logging.getLogger("discord-aggregator")
 
 
-async def _publish(self, url: str, content: str, source_key: str | None = None):
-    pass
+async def _publish(self, url: str, api_key: str, content: str, source_key: str | None = None):
+    logger.info(
+        "Publishing to %s with content: %s for %s",
+        url,
+        content,
+        source_key or "no source key",
+    )
+
+    headers = {
+        "Content-Type": "application/json",
+        "x-api-key": api_key,
+    }
+    package = {
+        "content": content,
+    }
+    if source_key:
+        package["source_key"] = source_key
+
+    async with aiohttp.ClientSession() as session, session.post(url, json=package, headers=headers) as response:
+        if response.status == http.HTTPStatus.OK:
+            logger.info("Successfully published content.")
+        else:
+            text = await response.text()
+            logger.warning("Failed to publish: %s %s", response.status, text)
 
 
 class Publish(ConfigurableCog):
@@ -33,7 +60,13 @@ class Publish(ConfigurableCog):
             channel_id = await get_guild_publishing_channel(session, message.guild.id)
             if channel_id and message.channel.id == channel_id:
                 source_key = await get_source_key(session, guild_id=message.guild.id, user_id=message.author.id)
-                await _publish(self, self.settings.publish_url, message.content, source_key)
+                await _publish(
+                    self,
+                    self.settings.publish_url,
+                    self.settings.publish_api_key,
+                    message.content,
+                    source_key,
+                )
 
     @app_commands.command()
     @app_commands.default_permissions(administrator=True)

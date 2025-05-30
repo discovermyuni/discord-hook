@@ -103,9 +103,11 @@ async def get_guild_publishing_channel(session: AsyncSession, guild_id: int) -> 
 
 
 async def set_guild_publishing_channel(session: AsyncSession, guild_id: int, channel_id: int) -> None:
-    existing = await get_guild_publishing_channel(session, guild_id)
-    if existing:
-        existing.channel_id = channel_id
+    stmt = select(GuildPublishingChannel).where(GuildPublishingChannel.guild_id == guild_id)
+    result = await session.execute(stmt)
+    row = result.scalar_one_or_none()
+    if row:
+        row.channel_id = channel_id
     else:
         session.add(GuildPublishingChannel(guild_id=guild_id, channel_id=channel_id))
     await session.commit()

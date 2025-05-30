@@ -46,7 +46,7 @@ async def get_source_key(session: AsyncSession, user_id: int | None = None, guil
             return row
 
     result = await session.execute(
-        select(GuildSourceKey.source_key).where(GuildSourceKey.guild_id == guild_id)
+        select(GuildSourceKey.source_key).where(GuildSourceKey.guild_id == guild_id),
     )
     row = result.scalar_one_or_none()
     return row.source_key if row else None

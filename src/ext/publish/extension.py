@@ -17,9 +17,7 @@ default_settings = {"publish_url": "https://example.com/publish"}
 
 
 async def _publish(self, url: str, content: str, source_key: str | None = None):
-    print("Publishing content to URL:", url)
-    print("Content:", content)
-    print("source_key:", source_key)
+    pass
 
 
 class Publish(ConfigurableCog):
@@ -31,13 +29,9 @@ class Publish(ConfigurableCog):
         if not message.guild:
             return
 
-        print(f"Received message in guild {message.guild.id} from {message.author.name}: {message.content}")
-
         async with get_async_session() as session:
             channel_id = await get_guild_publishing_channel(session, message.guild.id)
-            print(f"Publishing channel ID for guild {message.guild.id}: {channel_id}")
             if channel_id and message.channel.id == channel_id:
-                print(f"Publishing message in channel {message.channel.id}")
                 source_key = await get_source_key(session, guild_id=message.guild.id, user_id=message.author.id)
                 await _publish(self, self.settings.publish_url, message.content, source_key)
 
